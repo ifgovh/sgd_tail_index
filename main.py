@@ -120,6 +120,8 @@ if __name__ == '__main__':
             net = fc(width=args.width, depth=args.depth, num_classes=num_classes, input_dim=3*32*32).to(args.device)
     elif args.model == 'alexnet':
         net = alexnet(ch=args.scale, num_classes=num_classes).to(args.device)
+    elif args.model == 'simplenet'
+        net = simplenet()
 
     print(net)
     
