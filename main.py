@@ -1,4 +1,4 @@
-
+import scipy.io as sio
 import argparse
 import math
 import os
@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-from models import alexnet, fc
-from utils import get_id, get_data, accuracy
+from models import alexnet, fc, simplenet
+from utils import get_data, accuracy
 from utils import get_grads, alpha_estimator, alpha_estimator2
 from utils import linear_hinge_loss, get_layerWise_norms
 
@@ -73,20 +73,20 @@ def eval(eval_loader, net, crit, opt, args, test=True):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--iterations', default=100000, type=int)
+    parser.add_argument('--iterations', default=100000, type=int)#100000
     parser.add_argument('--batch_size_train', default=100, type=int)
     parser.add_argument('--batch_size_eval', default=100, type=int,
         help='must be equal to training batch size')
     parser.add_argument('--lr', default=0.1, type=float)
     parser.add_argument('--mom', default=0, type=float)
     parser.add_argument('--wd', default=0, type=float)
-    parser.add_argument('--print_freq', default=100, type=int)
-    parser.add_argument('--eval_freq', default=100, type=int)
+    parser.add_argument('--print_freq', default=100, type=int)#100
+    parser.add_argument('--eval_freq', default=10, type=int)#100
     parser.add_argument('--dataset', default='mnist', type=str,
         help='mnist | cifar10 | cifar100')
     parser.add_argument('--path', default='./data', type=str)
     parser.add_argument('--seed', default=0, type=int)
-    parser.add_argument('--model', default='fc', type=str)
+    parser.add_argument('--model', default='simplenet', type=str)
     parser.add_argument('--criterion', default='NLL', type=str,
         help='NLL | linear_hinge')
     parser.add_argument('--scale', default=64, type=int,
@@ -120,8 +120,8 @@ if __name__ == '__main__':
             net = fc(width=args.width, depth=args.depth, num_classes=num_classes, input_dim=3*32*32).to(args.device)
     elif args.model == 'alexnet':
         net = alexnet(ch=args.scale, num_classes=num_classes).to(args.device)
-    elif args.model == 'simplenet'
-        net = simplenet()
+    elif args.model == 'simplenet':
+        net = simplenet().to(args.device)
 
     print(net)
     
@@ -220,20 +220,23 @@ if __name__ == '__main__':
                 print('Folder already exists, beware of overriding old data!')
 
             # save the setup
-            torch.save(args, args.save_dir + '/args.info')
+            torch.save(args, args.save_dir + '/' + args.model + '_args.info')
             # save the outputs
-            torch.save(te_outputs, args.save_dir + '/te_outputs.pyT')
-            torch.save(tr_outputs, args.save_dir + '/tr_outputs.pyT')
+            torch.save(te_outputs, args.save_dir + '/' + args.model + '_te_outputs.pyT')
+            torch.save(tr_outputs, args.save_dir + '/' + args.model + '_tr_outputs.pyT')
             # save the model
-            torch.save(net, args.save_dir + '/net.pyT') 
+            torch.save(net, args.save_dir + '/' + args.model + '_net.pyT') 
             # save the logs
-            torch.save(training_history, args.save_dir + '/training_history.hist')
-            torch.save(weight_grad_history, args.save_dir + '/weight_history.hist')
-            torch.save(evaluation_history_TEST, args.save_dir + '/evaluation_history_TEST.hist')
-            torch.save(evaluation_history_TRAIN, args.save_dir + '/evaluation_history_TRAIN.hist')
-            torch.save(noise_norm_history_TEST, args.save_dir + '/noise_norm_history_TEST.hist')
-            torch.save(noise_norm_history_TRAIN, args.save_dir + '/noise_norm_history_TRAIN.hist')
-            
+            torch.save(training_history, args.save_dir + '/' + args.model + '_training_history.hist')
+            torch.save(weight_grad_history, args.save_dir + '/' + args.model + '_weight_history.hist')
+            torch.save(evaluation_history_TEST, args.save_dir + '/' + args.model + '_evaluation_history_TEST.hist')
+            torch.save(evaluation_history_TRAIN, args.save_dir + '/' + args.model + '_evaluation_history_TRAIN.hist')
+            torch.save(noise_norm_history_TEST, args.save_dir + '/' + args.model + '_noise_norm_history_TEST.hist')
+            torch.save(noise_norm_history_TRAIN, args.save_dir + '/' + args.model + '_noise_norm_history_TRAIN.hist')
+            train_noise = [t.numpy() for t in noise_norm_history_TRAIN]
+            test_noise = [t.numpy() for t in noise_norm_history_TEST]
+            sio.savemat(args.save_dir+"/" + args.model + "_gradient_noise.mat",
+                        mdict={'train':train_noise,'test':test_noise})            
             break
 
     
