@@ -149,11 +149,11 @@ if __name__ == '__main__':
                 yield data
 
     circ_train_loader = cycle_loader(train_loader)
-    #counter=0
-    #for i, (x, y) in enumerate(circ_train_loader):
-    #    counter=counter+1
-    #print(counter)
-    #import pdb;pdb.set_trace() 
+    counter=0
+    for i, (x, y) in enumerate(circ_train_loader):
+        counter=counter+1
+    print(counter)
+    import pdb;pdb.set_trace() 
     # training logs per iteration
     training_history = []
     weight_grad_history = []
